@@ -22,7 +22,7 @@ func getProducts(db *sql.DB)([]product, error) {
 	products := []product{}
 	for rows.Next() {
 		var p product
-		err := rows.Scan(&p.ID, &p.Name, &p.Price, p.Quantity)
+		err := rows.Scan(&p.ID, &p.Name, &p.Quantity, &p.Price)
 		if err != nil {
 			return nil, err
 		}

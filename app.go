@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -35,6 +36,8 @@ log.Fatal(http.ListenAndServe(address, app.Router))
 func (app *App)handleRoutes() {
 
 	app.Router.HandleFunc("/products", app.getProducts).Methods("GET")
+	app.Router.HandleFunc("/products/{id}", app.getProduct).Methods("GET")
+
 
 }
 
@@ -57,4 +60,25 @@ func (app *App) getProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendResponse(w, http.StatusOK, products)
+}
+
+func (app *App) getProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	key, err:= strconv.Atoi(vars["id"])
+	if err != nil {
+		sendError(w, http.StatusBadRequest, "invalid product id")
+		return
+	}
+	p := product{ID: key}
+	err = p.getProduct(app.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			sendError(w, http.StatusNotFound, "product not found!")
+		default:
+			sendError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	sendResponse(w, http.StatusOK, p)
 }
